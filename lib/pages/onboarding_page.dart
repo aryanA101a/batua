@@ -1,6 +1,16 @@
+import 'dart:math' as math;
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:web3dart/crypto.dart';
+import 'package:web3dart/web3dart.dart';
+
+import 'home_page.dart';
 
 class OnboardingPage extends StatelessWidget {
+  static const route = "/";
+
   const OnboardingPage({super.key});
 
   @override
@@ -50,7 +60,18 @@ class CreateAccountBtn extends StatelessWidget {
           shape: MaterialStateProperty.all(
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
         ),
-        onPressed: () {},
+        onPressed: () async {
+          var rng = math.Random.secure();
+          EthPrivateKey ethPrivateKey = EthPrivateKey.createRandom(rng);
+          Uint8List privateKey = ethPrivateKey.privateKey;
+          AndroidOptions _getAndroidOptions() => const AndroidOptions(
+                encryptedSharedPreferences: true,
+              );
+          final storage = FlutterSecureStorage(aOptions: _getAndroidOptions());
+          storage.write(key: "privateKey", value: bytesToHex(privateKey));
+              Navigator.popAndPushNamed(context, HomePage.route);
+
+        },
         icon: Icon(
           Icons.add_rounded,
           color: Colors.grey.shade900,
