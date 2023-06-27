@@ -1,5 +1,6 @@
-import 'package:batua/pages/home_page.dart';
-import 'package:batua/pages/onboarding_page.dart';
+import 'package:batua/pages/homePage.dart';
+import 'package:batua/pages/onboardingPage.dart';
+import 'package:batua/pages/tokenInfoPage.dart';
 import 'package:batua/ui_helper/homePageUiHelper.dart';
 import 'package:batua/utils.dart';
 import 'package:flutter/material.dart';
@@ -28,9 +29,8 @@ class MyApp extends StatelessWidget {
               create: (context) => HomePageUiHelper(context),
               child: const HomePage(),
             ),
+        "/tokenInfoPage": (context) => const TokenInfoPage(),
       },
     );
   }
 }
-
-

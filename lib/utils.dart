@@ -22,7 +22,11 @@ double hexPriceToDouble(String hexPrice) {
 
   return intValue / pow(10, 18);
 }
+ double hexAmountToDouble(String hexAmount, int decimal) {
+    BigInt intValue = BigInt.parse(hexAmount, radix: 16);
 
+    return intValue / BigInt.from(pow(10, decimal));
+  }
 enum Network { etheriumMainnet, sepoliaTestnet }
 
 Map symbols = {

@@ -1,25 +1,22 @@
-// To parse this JSON data, do
-//
-//     final welcome = welcomeFromJson(jsonString);
-
 import 'dart:convert';
 
-class Balance {
+class BalanceModel {
   final String jsonrpc;
   final int id;
   final String result;
 
-  Balance({
+  BalanceModel({
     required this.jsonrpc,
     required this.id,
     required this.result,
   });
 
-  factory Balance.fromRawJson(String str) => Balance.fromJson(json.decode(str));
+  factory BalanceModel.fromRawJson(String str) =>
+      BalanceModel.fromJson(json.decode(str));
 
   String toRawJson() => json.encode(toJson());
 
-  factory Balance.fromJson(Map<String, dynamic> json) => Balance(
+  factory BalanceModel.fromJson(Map<String, dynamic> json) => BalanceModel(
         jsonrpc: json["jsonrpc"],
         id: json["id"],
         result: json["result"],

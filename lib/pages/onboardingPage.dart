@@ -6,7 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
-import 'home_page.dart';
+import 'homePage.dart';
 
 class OnboardingPage extends StatelessWidget {
   static const route = "/";

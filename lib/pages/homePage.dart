@@ -1,5 +1,9 @@
 import 'dart:developer';
 
+
+import 'package:batua/models/token.dart';
+import 'package:batua/pages/tokenInfoPage.dart';
+import 'package:batua/services/api_service.dart';
 import 'package:batua/ui_helper/homePageUiHelper.dart';
 import 'package:batua/utils.dart';
 import 'package:cherry_toast/cherry_toast.dart';
@@ -9,8 +13,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 
-import 'onboarding_page.dart';
+import 'onboardingPage.dart';
 
 class HomePage extends StatelessWidget {
   static const route = "/home";
@@ -18,31 +23,112 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var provider = Provider.of<HomePageUiHelper>(context);
+    List<Token> tokens = context.select<HomePageUiHelper, List<Token>>(
+        (value) => value.tokens.values.toList());
+    // var provider = Provider.of<HomePageUiHelper>(context);
     return Scaffold(
         body: SafeArea(
       child: Column(
         children: [
           Container(
             height: MediaQuery.sizeOf(context).height * (1 / 3),
-            child: Column(
+            child: const Column(
               children: [
                 TopBar(),
                 Expanded(child: WalletInfo()),
               ],
             ),
           ),
-          Expanded(
-            child: Container(
-              margin: EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: Colors.grey.shade200),
-            ),
+          const Expanded(
+            child: TokensSectionWidget(),
           )
         ],
       ),
     ));
+  }
+}
+
+class TokensSectionWidget extends StatelessWidget {
+  const TokensSectionWidget({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    List<Token> tokens = context.select<HomePageUiHelper, List<Token>>(
+        (value) => value.tokens.values.toList());
+    if (tokens.isNotEmpty) {
+      return Container(
+          margin: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.grey.shade200),
+          child: ListView.separated(
+            shrinkWrap: true,
+            itemCount: tokens.length,
+            separatorBuilder: (context, index) => Divider(
+              indent: 5,
+              endIndent: 5,
+            ),
+            itemBuilder: (context, index) {
+              // log(tokens[index].logo.toString());
+              return Container(
+                margin: EdgeInsets.all(6),
+                child: ListTile(
+                  onTap: () => Navigator.pushNamed(context, TokenInfoPage.route,
+                      arguments: (
+                        logo: tokens[index].logo,
+                        name: tokens[index].name,
+                        symbol: tokens[index].symbol,
+                      )),
+                  tileColor: Colors.transparent,
+                  leading: tokens[index].logo == null
+                      ? CircleAvatar(
+                          backgroundColor: Colors.white,
+                          child: FittedBox(
+                              child: Padding(
+                            padding: EdgeInsets.all(2.0),
+                            child: Text(
+                              tokens[index].symbol,
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          )),
+                        )
+                      : CircleAvatar(
+                          backgroundColor: Colors.white,
+                          backgroundImage: NetworkImage(tokens[index].logo!),
+                        ),
+                  title: Text(
+                    tokens[index].name,
+                    style: const TextStyle(
+                        color: Colors.black, overflow: TextOverflow.ellipsis),
+                  ),
+                  subtitle: Text(tokens[index].symbol),
+                  trailing: Container(
+                    alignment: Alignment.centerRight,
+                    width: MediaQuery.sizeOf(context).width * .3,
+                    child: Text(
+                      tokens[index].amount.toStringAsFixed(4),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey.shade900,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ));
+    }
+    return Shimmer.fromColors(
+        child: Container(
+            margin: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade200,
+              borderRadius: BorderRadius.circular(12),
+            )),
+        baseColor: Colors.grey.shade200,
+        highlightColor: Colors.white);
   }
 }
 
@@ -62,7 +148,7 @@ class WalletInfo extends StatelessWidget {
     String symbol = symbols[context.read<HomePageUiHelper>().network];
     return Container(
       width: double.infinity,
-      margin: EdgeInsets.all(8),
+      margin: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -74,14 +160,14 @@ class WalletInfo extends StatelessWidget {
               Clipboard.setData(ClipboardData(text: address ?? ""));
 
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
+                const SnackBar(
                   content: Text(
                     'Address copied!',
                   ),
                 ),
               );
             },
-            icon: Icon(
+            icon: const Icon(
               Icons.copy,
               size: 15,
             ),
@@ -89,7 +175,7 @@ class WalletInfo extends StatelessWidget {
               width: 100,
               child: Text(
                 address ?? "",
-                style: TextStyle(overflow: TextOverflow.ellipsis),
+                style: const TextStyle(overflow: TextOverflow.ellipsis),
               ),
             ),
           ),
@@ -97,7 +183,7 @@ class WalletInfo extends StatelessWidget {
             textAlign: TextAlign.center,
             text: TextSpan(
                 text: "$balance $symbol",
-                style: TextStyle(
+                style: const TextStyle(
                     fontSize: 25,
                     fontWeight: FontWeight.w500,
                     color: Colors.black),
@@ -115,7 +201,9 @@ class WalletInfo extends StatelessWidget {
             elevation: 0,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            onPressed: () {},
+            onPressed: () {
+             
+            },
             child: Text(
               "Send",
               style: TextStyle(color: Colors.grey.shade200),
@@ -137,24 +225,24 @@ class TopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Padding(
-          padding: const EdgeInsets.all(2.0),
+        const Padding(
+          padding: EdgeInsets.all(2.0),
           child: Icon(
             Icons.wallet_rounded,
             color: Colors.blue,
             size: 30,
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.all(2.0),
+        const Padding(
+          padding: EdgeInsets.all(2.0),
           child: Text(
             "बटुआ",
             style: TextStyle(
                 color: Colors.blue, fontSize: 20, fontWeight: FontWeight.bold),
           ),
         ),
-        Spacer(),
-        NetworksButton(),
+        const Spacer(),
+        const NetworksButton(),
         IconButton(
             onPressed: () {},
             icon: Icon(FontAwesomeIcons.fileInvoice,
@@ -200,7 +288,7 @@ class NetworksButton extends StatelessWidget {
       onPressed: () {
         context.read<HomePageUiHelper>().changingNetwork
             ? ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
+                const SnackBar(
                   content: Text(
                     'Network change in progress!',
                   ),
