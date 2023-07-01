@@ -1,13 +1,13 @@
 import 'dart:developer';
 
-
 import 'package:batua/models/token.dart';
 import 'package:batua/pages/tokenInfoPage.dart';
+import 'package:batua/pages/transactionHistoryPage.dart';
 import 'package:batua/services/api_service.dart';
 import 'package:batua/ui_helper/homePageUiHelper.dart';
 import 'package:batua/utils.dart';
-import 'package:cherry_toast/cherry_toast.dart';
-import 'package:cherry_toast/resources/arrays.dart';
+import 'package:batua/widgets.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -23,8 +23,6 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List<Token> tokens = context.select<HomePageUiHelper, List<Token>>(
-        (value) => value.tokens.values.toList());
     // var provider = Provider.of<HomePageUiHelper>(context);
     return Scaffold(
         body: SafeArea(
@@ -202,7 +200,13 @@ class WalletInfo extends StatelessWidget {
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             onPressed: () {
-             
+              txnToast(
+                from: "2810en2387128934",
+                to: "fuw7fwef7w7fqd",
+                address: "2810en2387128934",
+                network: Network.sepoliaTestnet,
+                value: .005,
+              );
             },
             child: Text(
               "Send",
@@ -244,7 +248,12 @@ class TopBar extends StatelessWidget {
         const Spacer(),
         const NetworksButton(),
         IconButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.pushNamed(
+                context,
+                TransactionhistoryPage.route,
+              );
+            },
             icon: Icon(FontAwesomeIcons.fileInvoice,
                 color: Colors.blue.shade800)),
         IconButton(

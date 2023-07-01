@@ -71,13 +71,13 @@ class TokenInfoPage extends StatelessWidget {
                         ? Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: CircleAvatar(
-                                backgroundColor: Colors.white,
+                                backgroundColor: Colors.cyan,
                                 child: Text(
                                   args.symbol,
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 30,
-                                      color: Colors.blue),
+                                      color: Colors.white),
                                 )),
                           )
                         : Padding(

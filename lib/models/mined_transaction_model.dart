@@ -56,7 +56,7 @@ class Params {
 
 class Result {
   final bool removed;
-  final Transaction transaction;
+  final MinedTransaction transaction;
 
   Result({
     required this.removed,
@@ -69,7 +69,7 @@ class Result {
 
   factory Result.fromJson(Map<String, dynamic> json) => Result(
         removed: json["removed"],
-        transaction: Transaction.fromJson(json["transaction"]),
+        transaction: MinedTransaction.fromJson(json["transaction"]),
       );
 
   Map<String, dynamic> toJson() => {
@@ -78,7 +78,7 @@ class Result {
       };
 }
 
-class Transaction {
+class MinedTransaction {
   final String blockHash;
   final String blockNumber;
   final String from;
@@ -99,7 +99,7 @@ class Transaction {
   final String r;
   final String s;
 
-  Transaction({
+  MinedTransaction({
     required this.blockHash,
     required this.blockNumber,
     required this.from,
@@ -121,12 +121,13 @@ class Transaction {
     required this.s,
   });
 
-  factory Transaction.fromRawJson(String str) =>
-      Transaction.fromJson(json.decode(str));
+  factory MinedTransaction.fromRawJson(String str) =>
+      MinedTransaction.fromJson(json.decode(str));
 
   String toRawJson() => json.encode(toJson());
 
-  factory Transaction.fromJson(Map<String, dynamic> json) => Transaction(
+  factory MinedTransaction.fromJson(Map<String, dynamic> json) =>
+      MinedTransaction(
         blockHash: json["blockHash"],
         blockNumber: json["blockNumber"],
         from: json["from"],

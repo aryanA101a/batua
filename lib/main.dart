@@ -1,13 +1,18 @@
+import 'package:batua/di/locator.dart';
 import 'package:batua/pages/homePage.dart';
 import 'package:batua/pages/onboardingPage.dart';
 import 'package:batua/pages/tokenInfoPage.dart';
+import 'package:batua/pages/transactionHistoryPage.dart';
 import 'package:batua/ui_helper/homePageUiHelper.dart';
+import 'package:batua/ui_helper/transactionPageUiHelper.dart';
 import 'package:batua/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:oktoast/oktoast.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
+  setupDi();
   await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
   bool loggedIn = await isLogged();
@@ -20,17 +25,22 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: "Batua",
-      initialRoute: loggedIn ? HomePage.route : OnboardingPage.route,
-      routes: {
-        "/": (context) => const OnboardingPage(),
-        "/home": (context) => ChangeNotifierProvider(
-              create: (context) => HomePageUiHelper(context),
-              child: const HomePage(),
-            ),
-        "/tokenInfoPage": (context) => const TokenInfoPage(),
-      },
+    return OKToast(
+      child: MaterialApp(
+        title: "Batua",
+        initialRoute: loggedIn ? HomePage.route : OnboardingPage.route,
+        routes: {
+          "/": (context) => const OnboardingPage(),
+          "/home": (context) => ChangeNotifierProvider(
+                create: (context) => getIt<HomePageUiHelper>(),
+                child: const HomePage(),
+              ),
+          "/tokenInfoPage": (context) => const TokenInfoPage(),
+          "/transactionHistory": (context) => ChangeNotifierProvider(
+            create: (context) => TransactionPageUiHelper(),
+            child: const TransactionhistoryPage()),
+        },
+      ),
     );
   }
 }

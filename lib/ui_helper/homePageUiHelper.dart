@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'dart:developer';
+import 'package:batua/di/locator.dart';
 import 'package:batua/models/mined_transaction_model.dart';
 import 'package:batua/models/token.dart';
 import 'package:batua/models/tokens_model.dart';
+import 'package:batua/models/transaction.dart';
+import 'package:batua/models/transaction_model.dart';
 import 'package:batua/services/api_service.dart';
 import 'package:batua/utils.dart';
 import 'package:batua/widgets.dart';
@@ -14,7 +17,7 @@ typedef ContractAddress = String;
 typedef tokenInfoPageArgs = ({String? logo, String name, String symbol});
 
 class HomePageUiHelper extends ChangeNotifier {
-  HomePageUiHelper(BuildContext context) : _context = context {
+  HomePageUiHelper() {
     _init();
   }
   @override
@@ -22,12 +25,12 @@ class HomePageUiHelper extends ChangeNotifier {
     log("dispose");
     _closeTxnStream();
     _closeEthUsdtPriceStream();
+    getIt.resetLazySingleton<HomePageUiHelper>();
     super.dispose();
   }
 
-  BuildContext _context;
   String? _address;
-  get address => _address;
+  String? get address => _address;
 
   double _balance = 0;
   String get balance => _balance.toStringAsFixed(4);
@@ -39,7 +42,7 @@ class HomePageUiHelper extends ChangeNotifier {
   String _tokensMessage = "No Tokens!";
   String get tokensMessage => _tokensMessage;
 
-  late Stream<Transaction?> _txnStream;
+  late Stream<MinedTransaction?> _txnStream;
   late Function _closeTxnStream;
   late Stream<String?> _ethUsdtPriceStream;
   late Function _closeEthUsdtPriceStream;
@@ -50,15 +53,17 @@ class HomePageUiHelper extends ChangeNotifier {
   Network get network => _network;
 
   Future<void> _updateBalance() async {
-    ApiService.getBalance(address, network).then((value) {
-      if (value != null) {
-        _balance = hexPriceToDouble(value.result.substring(2));
-        if (_balance == 0) {
-          _usdtBalance = 0;
+    if (_address != null) {
+      ApiService.getBalance(_address!, network).then((value) {
+        if (value != null) {
+          _balance = hexPriceToDouble(value.result.substring(2));
+          if (_balance == 0) {
+            _usdtBalance = 0;
+          }
+          notifyListeners();
         }
-        notifyListeners();
-      }
-    });
+      });
+    }
   }
 
   changeNetwork() {
@@ -69,17 +74,28 @@ class HomePageUiHelper extends ChangeNotifier {
     _startTxnStream();
     Future.wait([
       _updateBalance(),
-      _updateTokens("0x692190B4A5d3524b6FEd0465e7400C07D09dB954", network),
+      getTokens(),
     ]).then((value) => _changingNetwork = false);
   }
 
   _init() async {
+    await retrieveAddress();
+
+    notifyListeners();
+    _updateBalance();
+    _startTxnStream();
+    getTokens();
+
+    _startEthUsdtPriceStream();
+  }
+
+  Future<void> retrieveAddress() async {
     AndroidOptions _getAndroidOptions() => const AndroidOptions(
           encryptedSharedPreferences: true,
         );
     final storage = FlutterSecureStorage(aOptions: _getAndroidOptions());
     String? privateKey = await storage.read(key: "privateKey");
-    _address = "0x${bytesToHex(
+    _address = bytesToHex(
       publicKeyToAddress(
         privateKeyBytesToPublic(
           hexToBytes(
@@ -87,40 +103,30 @@ class HomePageUiHelper extends ChangeNotifier {
           ),
         ),
       ),
-    )}";
-    _updateBalance();
-    notifyListeners();
-    _startTxnStream();
-    getTokens("0x692190B4A5d3524b6FEd0465e7400C07D09dB954", network);
-    // _retrieveTokens(
-    //   "0x692190B4A5d3524b6FEd0465e7400C07D09dB954",
-    //   Network.etheriumMainnet,
-    // );
-
-    _startEthUsdtPriceStream();
+    );
   }
 
   void _startTxnStream() {
-    var (txnStream, closeTxn) =
-        ApiService.getTransactionStream(address, _network);
+    if (_address != null) {
+      var (txnStream, closeTxn) =
+          ApiService.getTransactionStream(_address!, _network);
 
-    _txnStream = txnStream;
-    _closeTxnStream = closeTxn;
-    _txnStream.listen((event) {
-      if (event != null) {
-        _updateBalance();
-        _updateTokens("0x692190B4A5d3524b6FEd0465e7400C07D09dB954", network);
-        String price =
-            hexPriceToDouble(event.value.substring(2)).toStringAsFixed(4);
-        txnToast(
-                from: event.from,
-                to: event.to,
-                address: address,
-                network: network,
-                value: price)
-            .show(_context);
-      }
-    });
+      _txnStream = txnStream;
+      _closeTxnStream = closeTxn;
+      _txnStream.listen((event) {
+        if (event != null) {
+          _updateBalance();
+          _updateTokens();
+          double price = hexPriceToDouble(event.value.substring(2));
+          txnToast(
+              from: event.from,
+              to: event.to,
+              address: _address!,
+              network: network,
+              value: price);
+        }
+      });
+    }
   }
 
   void _startEthUsdtPriceStream() {
@@ -137,34 +143,46 @@ class HomePageUiHelper extends ChangeNotifier {
     });
   }
 
-  Future<void> getTokens(String address, Network network) async {
-    List<TokenModel>? tokens =
-        await ApiService.getErc20Tokens(address, network);
-    tokens?.where((element) => !element.possibleSpam).forEach((element) {
-      _tokens[element.tokenAddress] = Token(
-          amount: hexAmountToDouble(element.balance, element.decimals),
-          logo: element.logo,
-          name: element.name,
-          symbol: element.symbol,
-          usdtBalance: null);
-    });
-    notifyListeners();
+  Future<void> getTokens() async {
+    if (_address != null) {
+      List<TokenModel>? tokenModelList =
+          await ApiService.getErc20Tokens(_address!, network);
+      log("tokens.toString()");
+      Map<String, Token> tokens = {};
+
+      tokenModelList
+          ?.where((element) =>
+              (network == Network.sepoliaTestnet || !element.possibleSpam))
+          .forEach((element) {
+        log(element.balance + " " + element.decimals.toString());
+        tokens[element.tokenAddress] = Token(
+            amount: calculateTokenAmount(element.balance, element.decimals),
+            logo: element.logo,
+            name: element.name,
+            symbol: element.symbol,
+            usdtBalance: null);
+      });
+      _tokens = tokens;
+      notifyListeners();
+    }
   }
 
-  Future<void> _updateTokens(String address, Network network) async {
-    List<TokenModel>? tokens =
-        await ApiService.getErc20Tokens(address, network);
-    if (changingNetwork) {
-      _tokens = {};
+  Future<void> _updateTokens() async {
+    if (_address != null) {
+      List<TokenModel>? tokens =
+          await ApiService.getErc20Tokens(_address!, network);
+      if (changingNetwork) {
+        _tokens = {};
+      }
+      tokens?.where((element) => !element.possibleSpam).forEach((element) {
+        _tokens[element.tokenAddress] = Token(
+            amount: calculateTokenAmount(element.balance, element.decimals),
+            logo: element.logo,
+            name: element.name,
+            symbol: element.symbol,
+            usdtBalance: null);
+      });
+      notifyListeners();
     }
-    tokens?.where((element) => !element.possibleSpam).forEach((element) {
-      _tokens[element.tokenAddress] = Token(
-          amount: hexAmountToDouble(element.balance, element.decimals),
-          logo: element.logo,
-          name: element.name,
-          symbol: element.symbol,
-          usdtBalance: null);
-    });
-    notifyListeners();
   }
 }
