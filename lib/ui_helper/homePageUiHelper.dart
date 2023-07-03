@@ -27,7 +27,7 @@ class HomePageUiHelper extends ChangeNotifier {
   void dispose() {
     log("dispose");
     _closeTxnStream();
-    _closeEthUsdtPriceStream();
+    // _closeEthUsdtPriceStream();
     getIt.resetLazySingleton<HomePageUiHelper>();
     super.dispose();
   }
@@ -47,13 +47,16 @@ class HomePageUiHelper extends ChangeNotifier {
 
   late Stream<MinedTransaction?> _txnStream;
   late Function _closeTxnStream;
-  late Stream<String?> _ethUsdtPriceStream;
-  late Function _closeEthUsdtPriceStream;
+  // late Stream<String?> _ethUsdtPriceStream;
+  // late Function _closeEthUsdtPriceStream;
 
   Network _network = Network.ethereumMainnet;
   bool _changingNetwork = false;
   bool get changingNetwork => _changingNetwork;
   Network get network => _network;
+
+  bool _loadingTokens = false;
+  bool get loadingTokens => _loadingTokens;
 
   Future<void> _updateBalance() async {
     if (_address != null) {
@@ -63,6 +66,8 @@ class HomePageUiHelper extends ChangeNotifier {
           if (_balance == 0) {
             _usdtBalance = 0;
           }
+          _setUsdBalance();
+
           notifyListeners();
         }
       });
@@ -77,7 +82,7 @@ class HomePageUiHelper extends ChangeNotifier {
     _startTxnStream();
     Future.wait([
       _updateBalance(),
-      getTokens(),
+      _getTokens(),
     ]).then((value) => _changingNetwork = false);
   }
 
@@ -85,14 +90,32 @@ class HomePageUiHelper extends ChangeNotifier {
     AccountService.getAddress().then((value) {
       _address = value;
       notifyListeners();
-      _updateBalance();
-      _startTxnStream();
-      getTokens();
-      _startEthUsdtPriceStream();
+      Future.wait([
+        _updateBalance(),
+        _startTxnStream(),
+        _getTokens(),
+      ]);
     });
   }
 
-  void _startTxnStream() {
+  Future<void> _setUsdBalance() async {
+    ApiService.getEthPrice().then(
+      (value) => value.fold(
+        (l) {
+          _usdtBalance = double.parse(l.ethusd) * _balance;
+          notifyListeners();
+        },
+        (r) {
+          if (rootScaffoldMessengerKey.currentState != null) {
+            rootScaffoldMessengerKey.currentState!.showSnackBar(SnackBar(
+                content: Text("${r.message} ETH price could not be fetched!")));
+          }
+        },
+      ),
+    );
+  }
+
+  Future<void> _startTxnStream() async {
     if (_address != null) {
       var (txnStream, closeTxn) =
           ApiService.getTransactionStream(_address!, _network);
@@ -104,10 +127,7 @@ class HomePageUiHelper extends ChangeNotifier {
           _updateBalance();
           _updateTokens();
           double price = hexPriceToDouble(event.value.substring(2));
-          log("gas:" +
-              int.parse(event.gas.substring(2), radix: 16).toString() +
-              " gasPrice:" +
-              int.parse(event.gasPrice.substring(2), radix: 16).toString());
+
           HapticFeedback.heavyImpact();
 
           rootScaffoldMessengerKey.currentState?.showSnackBar(
@@ -130,60 +150,55 @@ class HomePageUiHelper extends ChangeNotifier {
     }
   }
 
-  void _startEthUsdtPriceStream() {
-    var (priceStream, closeStream) = ApiService.getEthUsdtPriceStream();
+  // void _startEthUsdtPriceStream() {
+  //   var (priceStream, closeStream) = ApiService.getEthUsdtPriceStream();
 
-    _ethUsdtPriceStream = priceStream;
-    _closeEthUsdtPriceStream = closeStream;
+  //   _ethUsdtPriceStream = priceStream;
+  //   _closeEthUsdtPriceStream = closeStream;
 
-    _ethUsdtPriceStream.listen((event) {
-      if (event != null && _balance != 0) {
-        _usdtBalance = double.parse(event) * _balance;
-        notifyListeners();
-      }
-    });
-  }
+  //   _ethUsdtPriceStream.listen((event) {
+  //     if (event != null && _balance != 0) {
+  //       _usdtBalance = double.parse(event) * _balance;
+  //       notifyListeners();
+  //     }
+  //   });
+  // }
 
-  Future<void> getTokens() async {
+  Future<void> _getTokens() async {
     if (_address != null) {
-      List<TokenModel>? tokenModelList =
-          await ApiService.getErc20Tokens(_address!, network);
+      _loadingTokens = true;
+      notifyListeners();
+
+      var tokenModelList = await ApiService.getErc20Tokens(_address!, network);
       log("tokens.toString()");
       Map<String, Token> tokens = {};
-
-      tokenModelList
-          ?.where((element) =>
-              (network == Network.sepoliaTestnet || !element.possibleSpam))
-          .forEach((element) {
-        log(element.balance + " " + element.decimals.toString());
-        tokens[element.tokenAddress] = Token(
-            amount: calculateTokenAmount(element.balance, element.decimals),
-            logo: element.logo,
-            name: element.name,
-            symbol: element.symbol,
-            usdtBalance: null);
+      tokenModelList.fold((l) {
+        l
+            .where((element) =>
+                (network == Network.sepoliaTestnet || !element.possibleSpam))
+            .forEach((element) {
+          tokens[element.tokenAddress] = Token(
+              amount: calculateTokenAmount(element.balance, element.decimals),
+              logo: element.logo,
+              name: element.name,
+              symbol: element.symbol,
+              usdtBalance: null);
+        });
+        _tokens = tokens;
+      }, (r) {
+        return;
       });
-      _tokens = tokens;
-      notifyListeners();
+       _loadingTokens = false;
+    notifyListeners();
     }
   }
 
   Future<void> _updateTokens() async {
     if (_address != null) {
-      List<TokenModel>? tokens =
-          await ApiService.getErc20Tokens(_address!, network);
       if (changingNetwork) {
         _tokens = {};
       }
-      tokens?.where((element) => !element.possibleSpam).forEach((element) {
-        _tokens[element.tokenAddress] = Token(
-            amount: calculateTokenAmount(element.balance, element.decimals),
-            logo: element.logo,
-            name: element.name,
-            symbol: element.symbol,
-            usdtBalance: null);
-      });
-      notifyListeners();
+      _getTokens();
     }
   }
 }

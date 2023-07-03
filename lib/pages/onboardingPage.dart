@@ -63,8 +63,6 @@ class OnboardingPage extends StatelessWidget {
   }
 }
 
-
-
 class ImportAccountBtn extends StatelessWidget {
   const ImportAccountBtn({
     super.key,
@@ -82,7 +80,7 @@ class ImportAccountBtn extends StatelessWidget {
           shape: MaterialStateProperty.all(
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
         ),
-        onPressed: () {},
+        onPressed: null,
         icon: Icon(
           Icons.download_rounded,
           color: Colors.grey.shade900,

@@ -1,7 +1,8 @@
+import 'dart:developer';
+
 import 'package:batua/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
 
 class TransactionNotificationSnackbarContent extends StatelessWidget {
   const TransactionNotificationSnackbarContent({
@@ -19,6 +20,7 @@ class TransactionNotificationSnackbarContent extends StatelessWidget {
   final double value;
   @override
   Widget build(BuildContext context) {
+    log(from + " " + to);
     return ListTile(
       contentPadding: EdgeInsets.all(8),
       tileColor: Colors.lightGreen.shade50,

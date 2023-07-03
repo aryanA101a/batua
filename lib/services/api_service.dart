@@ -231,7 +231,7 @@ class ApiService {
     }
   }
 
-  static Future<List<TokenModel>?> getErc20Tokens(
+  static Future<Either<List<TokenModel>,AppException>> getErc20Tokens(
       String address, Network network) async {
     String path = "/api/v2/0x$address/erc20";
     Map<String, String> queryParameters = {};
@@ -247,20 +247,27 @@ class ApiService {
       'X-API-Key': moralisApiKey,
     };
 
-    final response = await http.get(
-      Uri.https("deep-index.moralis.io", path, queryParameters),
-      headers: headers,
-    );
+    try {
+      final response = await http.get(
+        Uri.https("deep-index.moralis.io", path, queryParameters),
+        headers: headers,
+      );
 
-    if (response.statusCode == 200) {
-      var tokensList = json
-          .decode(response.body)
-          .map<TokenModel>((e) => TokenModel.fromJson(e))
-          .toList();
-      // log(tokensList.toString());
-      return tokensList;
+      if (response.statusCode == 200) {
+        List<TokenModel> tokensList = json
+            .decode(response.body)
+            .map<TokenModel>((e) => TokenModel.fromJson(e))
+            .toList();
+        // log(tokensList.toString());
+        
+        return left(tokensList);
+
+      }
+      throw AppException(AppEType.somethingElse);
+    } catch (e) {
+       return right(AppException(AppEType.somethingElse));
     }
-    return null;
+   
   }
 
   static Future<TokenInfoModel?> getTokenInfo(String tokenSymbol) async {

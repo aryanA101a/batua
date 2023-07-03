@@ -218,7 +218,10 @@ class AddressFormFieldDropDown extends StatelessWidget {
                 .map((String value) {
               return PopupMenuItem<String>(
                 value: value,
-                child: Text(value),
+                child: Text(
+                  value,
+                  overflow: TextOverflow.ellipsis,
+                ),
               );
             }).toList();
           },

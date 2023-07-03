@@ -128,7 +128,7 @@ class MinedTransaction {
       MinedTransaction(
         blockHash: json["blockHash"],
         blockNumber: json["blockNumber"],
-        from: json["from"],
+        from: json["from"].substring(2),
         gas: json["gas"],
         gasPrice: json["gasPrice"],
         maxFeePerGas: json["maxFeePerGas"],
@@ -136,7 +136,7 @@ class MinedTransaction {
         hash: json["hash"],
         input: json["input"],
         nonce: json["nonce"],
-        to: json["to"],
+        to: json["to"].substring(2),
         transactionIndex: json["transactionIndex"],
         value: json["value"],
         type: json["type"],

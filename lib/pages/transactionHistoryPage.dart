@@ -115,10 +115,14 @@ class TransactionListWidget extends StatelessWidget {
                 child: Center(child: Text(exception.message)),
               );
             }
-            return Container(
-              margin: EdgeInsets.all(8.0),
-              child: const Center(child: CircularProgressIndicator()),
-            );
+
+            if (transactions != null && transactions!.length > 8) {
+              return Container(
+                margin: EdgeInsets.all(8.0),
+                child: const Center(child: CircularProgressIndicator()),
+              );
+            }
+            return Container();
           }
         },
         separatorBuilder: (context, index) => Divider(

@@ -38,14 +38,16 @@ class AccountService {
 
   static Future<void> saveAddress(String myAddress, String address) async {
     var box = await Hive.openBox('savedAddresses');
+    List savedAddresses = box.get(myAddress);
+    if (!savedAddresses.contains(address)) {
+      box.put(myAddress, [address, ...savedAddresses]);
+    }
 
-    box.put(myAddress, [address, ...box.get(myAddress)]);
     box.close();
   }
 
   static Future<List<String>> retrieveSavedAddresses(String address) async {
     var box = await Hive.openBox('savedAddresses');
-
     if (!box.containsKey(address)) {
       box.put(address, []);
       box.close();

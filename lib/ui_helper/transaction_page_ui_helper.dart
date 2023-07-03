@@ -30,8 +30,8 @@ class TransactionPageUiHelper with ChangeNotifier {
         },
         (r) {
           if (rootScaffoldMessengerKey.currentState != null) {
-            rootScaffoldMessengerKey.currentState!
-                .showSnackBar(SnackBar(content: Text("Something went wrong")));
+            rootScaffoldMessengerKey.currentState!.showSnackBar(SnackBar(
+                content: Text("${r.message} ETH price could not be fetched!")));
           }
         },
       ),
@@ -119,6 +119,8 @@ class TransactionPageUiHelper with ChangeNotifier {
                       "Something went wrong. Transaction could not be completed!")));
             }
           }
+          AccountService.saveAddress(getIt<HomePageUiHelper>().address!,
+              addressFieldValueController.text);
         },
       );
       return true;

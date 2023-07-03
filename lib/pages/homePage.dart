@@ -64,78 +64,91 @@ class TokensSectionWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     List<Token> tokens = context.select<HomePageUiHelper, List<Token>>(
         (value) => value.tokens.values.toList());
-    if (tokens.isNotEmpty) {
-      return Container(
-          margin: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: Colors.grey.shade200),
-          child: ListView.separated(
-            shrinkWrap: true,
-            itemCount: tokens.length,
-            separatorBuilder: (context, index) => Divider(
-              indent: 5,
-              endIndent: 5,
-            ),
-            itemBuilder: (context, index) {
-              // log(tokens[index].logo.toString());
-              return Container(
-                margin: EdgeInsets.all(6),
-                child: ListTile(
-                  onTap: () => Navigator.pushNamed(context, TokenInfoPage.route,
-                      arguments: (
-                        logo: tokens[index].logo,
-                        name: tokens[index].name,
-                        symbol: tokens[index].symbol,
-                      )),
-                  tileColor: Colors.transparent,
-                  leading: tokens[index].logo == null
-                      ? CircleAvatar(
-                          backgroundColor: Colors.white,
-                          child: FittedBox(
-                              child: Padding(
-                            padding: EdgeInsets.all(2.0),
-                            child: Text(
-                              tokens[index].symbol,
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
+    bool loading =
+        context.select<HomePageUiHelper, bool>((value) => value.loadingTokens);
+    if (loading) {
+      return Shimmer.fromColors(
+          child: Container(
+              margin: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(12),
+              )),
+          baseColor: Colors.grey.shade200,
+          highlightColor: Colors.white);
+    }
+
+    return Container(
+        margin: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: Colors.grey.shade200),
+        child: tokens.isEmpty
+            ? const Center(
+                child: Text(
+                  "No Tokens",
+                  style: TextStyle(fontSize: 20, color: Colors.black),
+                ),
+              )
+            : ListView.separated(
+                shrinkWrap: true,
+                itemCount: tokens.length,
+                separatorBuilder: (context, index) => Divider(
+                  indent: 5,
+                  endIndent: 5,
+                ),
+                itemBuilder: (context, index) {
+                  // log(tokens[index].logo.toString());
+                  return Container(
+                    margin: EdgeInsets.all(6),
+                    child: ListTile(
+                      onTap: () => Navigator.pushNamed(
+                          context, TokenInfoPage.route,
+                          arguments: (
+                            logo: tokens[index].logo,
+                            name: tokens[index].name,
+                            symbol: tokens[index].symbol,
                           )),
-                        )
-                      : CircleAvatar(
-                          backgroundColor: Colors.white,
-                          backgroundImage: NetworkImage(tokens[index].logo!),
+                      tileColor: Colors.transparent,
+                      leading: tokens[index].logo == null
+                          ? CircleAvatar(
+                              backgroundColor: Colors.white,
+                              child: FittedBox(
+                                  child: Padding(
+                                padding: EdgeInsets.all(2.0),
+                                child: Text(
+                                  tokens[index].symbol,
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              )),
+                            )
+                          : CircleAvatar(
+                              backgroundColor: Colors.white,
+                              backgroundImage:
+                                  NetworkImage(tokens[index].logo!),
+                            ),
+                      title: Text(
+                        tokens[index].name,
+                        style: const TextStyle(
+                            color: Colors.black,
+                            overflow: TextOverflow.ellipsis),
+                      ),
+                      subtitle: Text(tokens[index].symbol),
+                      trailing: Container(
+                        alignment: Alignment.centerRight,
+                        width: MediaQuery.sizeOf(context).width * .3,
+                        child: Text(
+                          tokens[index].amount.toStringAsFixed(4),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey.shade900,
+                          ),
                         ),
-                  title: Text(
-                    tokens[index].name,
-                    style: const TextStyle(
-                        color: Colors.black, overflow: TextOverflow.ellipsis),
-                  ),
-                  subtitle: Text(tokens[index].symbol),
-                  trailing: Container(
-                    alignment: Alignment.centerRight,
-                    width: MediaQuery.sizeOf(context).width * .3,
-                    child: Text(
-                      tokens[index].amount.toStringAsFixed(4),
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade900,
                       ),
                     ),
-                  ),
-                ),
-              );
-            },
-          ));
-    }
-    return Shimmer.fromColors(
-        child: Container(
-            margin: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade200,
-              borderRadius: BorderRadius.circular(12),
-            )),
-        baseColor: Colors.grey.shade200,
-        highlightColor: Colors.white);
+                  );
+                },
+              ));
   }
 }
 
