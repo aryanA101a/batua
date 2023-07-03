@@ -1,16 +1,16 @@
 # batua
 
-A new Flutter project.
+A simple ethereum wallet in flutter.
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Steps to run:
+1. Create a file named ".env" in the root directory of the project.
+2. Add the following to it:
+```
+ALCHEMY_ETHEREUM_MAINNET_API_KEY=
+ALCHEMY_SEPOLIA_TESTNET_API_KEY=
+MORALIS_API_KEY=
+COINMARKETCAP_API_KEY=
+ETHERSCAN_API_KEY=
+```
+3. Get free api keys for the above fields and fill up the ".env" file.
+4. Now build/run the app. 
