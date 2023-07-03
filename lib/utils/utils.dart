@@ -30,15 +30,14 @@ double calculateTokenAmountFromHex(String hexAmount, int decimal) {
 }
 
 double calculateTokenAmount(String amount, int decimal) {
-
-  return BigInt.parse(amount ) / BigInt.from(pow(10, decimal));
+  return BigInt.parse(amount) / BigInt.from(pow(10, decimal));
 }
 
-enum Network { etheriumMainnet, sepoliaTestnet }
+enum Network { ethereumMainnet, sepoliaTestnet }
 
-enum TransactionType { native, erc20,all }
+enum TransactionType { native, erc20, all }
 
 Map symbols = {
-  Network.etheriumMainnet: "ETH",
+  Network.ethereumMainnet: "ETH",
   Network.sepoliaTestnet: "SepoliaETH"
 };

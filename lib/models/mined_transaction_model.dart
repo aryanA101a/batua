@@ -84,20 +84,19 @@ class MinedTransaction {
   final String from;
   final String gas;
   final String gasPrice;
-  final String maxFeePerGas;
-  final String maxPriorityFeePerGas;
+  final String? maxFeePerGas;
+  final String? maxPriorityFeePerGas;
   final String hash;
-  final String input;
+  final String? input;
   final String nonce;
   final String to;
-  final String transactionIndex;
+  final String? transactionIndex;
   final String value;
-  final String type;
-  final List<dynamic> accessList;
+  final String? type;
   final String chainId;
-  final String v;
-  final String r;
-  final String s;
+  final String? v;
+  final String? r;
+  final String? s;
 
   MinedTransaction({
     required this.blockHash,
@@ -105,20 +104,19 @@ class MinedTransaction {
     required this.from,
     required this.gas,
     required this.gasPrice,
-    required this.maxFeePerGas,
-    required this.maxPriorityFeePerGas,
+    this.maxFeePerGas,
+    this.maxPriorityFeePerGas,
     required this.hash,
-    required this.input,
+    this.input,
     required this.nonce,
     required this.to,
-    required this.transactionIndex,
+    this.transactionIndex,
     required this.value,
-    required this.type,
-    required this.accessList,
+    this.type,
     required this.chainId,
-    required this.v,
-    required this.r,
-    required this.s,
+    this.v,
+    this.r,
+    this.s,
   });
 
   factory MinedTransaction.fromRawJson(String str) =>
@@ -142,7 +140,6 @@ class MinedTransaction {
         transactionIndex: json["transactionIndex"],
         value: json["value"],
         type: json["type"],
-        accessList: List<dynamic>.from(json["accessList"].map((x) => x)),
         chainId: json["chainId"],
         v: json["v"],
         r: json["r"],
@@ -164,7 +161,6 @@ class MinedTransaction {
         "transactionIndex": transactionIndex,
         "value": value,
         "type": type,
-        "accessList": List<dynamic>.from(accessList.map((x) => x)),
         "chainId": chainId,
         "v": v,
         "r": r,

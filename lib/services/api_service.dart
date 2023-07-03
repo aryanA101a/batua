@@ -1,24 +1,30 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:math' as math;
 
+import 'package:batua/exceptions/app_exceptions.dart';
 import 'package:batua/exceptions/transaction_history_exception.dart';
+import 'package:batua/models/eth_price_model.dart';
 import 'package:batua/models/token_info_model.dart';
 import 'package:batua/models/tokens_model.dart';
 import 'package:batua/models/transaction_model.dart';
+import 'package:batua/services/account_service.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:http/http.dart' as http;
 import 'package:batua/models/balance_model.dart';
 import 'package:batua/models/mined_transaction_model.dart';
-import 'package:batua/utils.dart';
+import 'package:batua/utils/utils.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:web3dart/credentials.dart';
+import 'package:web3dart/web3dart.dart' as web3;
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 typedef Error = String;
 
 class ApiService {
-  static const String _etheriumAlchemyHttps =
+  static const String _ethereumAlchemyHttps =
       'https://eth-mainnet.g.alchemy.com/v2/';
-  static const String _etheriumAlchemyWss =
+  static const String _ethereumAlchemyWss =
       'wss://eth-mainnet.g.alchemy.com/v2/';
   static const String _sepoliaAlchemyHttps =
       'https://eth-sepolia.g.alchemy.com/v2/';
@@ -32,17 +38,67 @@ class ApiService {
       'https://api-sepolia.etherscan.io/';
 
   static String sepoliaApiKey = dotenv.get("ALCHEMY_SEPOLIA_TESTNET_API_KEY");
-  static String etheriumApiKey = dotenv.get("ALCHEMY_ETHERIUM_MAINNET_API_KEY");
+  static String ethereumApiKey = dotenv.get("ALCHEMY_ETHEREUM_MAINNET_API_KEY");
   static String coinmarketcapApiKey = dotenv.get("COINMARKETCAP_API_KEY");
   static String moralisApiKey = dotenv.get("MORALIS_API_KEY");
   static String etherscanApiKey = dotenv.get("ETHERSCAN_API_KEY");
+  static Future<Either<(BigInt, web3.EtherAmount), AppException>> getGasInfo(
+      Network network) async {
+    String url;
+    switch (network) {
+      case Network.ethereumMainnet:
+        url = "$_ethereumAlchemyHttps$ethereumApiKey";
+      case Network.sepoliaTestnet:
+        url = "$_sepoliaAlchemyHttps$sepoliaApiKey";
+    }
+    try {
+      web3.Web3Client ethClient = web3.Web3Client(url, http.Client());
+      web3.EtherAmount gasPrice = await ethClient.getGasPrice();
+      BigInt estimatedGas = await ethClient.estimateGas();
+      return left((estimatedGas, gasPrice));
+    } catch (e) {
+      log(e.toString());
+      return right(AppException(AppEType.somethingElse));
+    }
+  }
+
+  static Future<AppException?> sendTransaction(double amount,
+      String fromAddress, String toAddress, Network network) async {
+    String url;
+    int chainId;
+    switch (network) {
+      case Network.ethereumMainnet:
+        url = "$_ethereumAlchemyHttps$ethereumApiKey";
+        chainId = 1;
+      case Network.sepoliaTestnet:
+        url = "$_sepoliaAlchemyHttps$sepoliaApiKey";
+        chainId = 11155111;
+    }
+    try {
+      web3.Web3Client ethClient = web3.Web3Client(url, http.Client());
+
+      var privateKey = await AccountService.retrievePrivateKey();
+      EthPrivateKey cred = EthPrivateKey.fromHex('0x${privateKey!}');
+      // web3.EtherAmount.fromInt
+      web3.Transaction txn = web3.Transaction(
+          maxGas: 100000,
+          from: EthereumAddress.fromHex(fromAddress),
+          to: EthereumAddress.fromHex(toAddress),
+          value:
+              web3.EtherAmount.inWei(BigInt.from(amount * math.pow(10, 18))));
+      await ethClient.sendTransaction(cred, txn, chainId: chainId);
+    } catch (e) {
+      return AppException(AppEType.somethingElse);
+    }
+    return null;
+  }
 
   static Future<BalanceModel?> getBalance(
       String address, Network network) async {
     String url;
     switch (network) {
-      case Network.etheriumMainnet:
-        url = "$_etheriumAlchemyHttps$etheriumApiKey";
+      case Network.ethereumMainnet:
+        url = "$_ethereumAlchemyHttps$ethereumApiKey";
       case Network.sepoliaTestnet:
         url = "$_sepoliaAlchemyHttps$sepoliaApiKey";
     }
@@ -73,6 +129,39 @@ class ApiService {
     return null;
   }
 
+  static Future<Either<EthPriceResult, AppException>> getEthPrice() async {
+    String authority = 'api.etherscan.io';
+    String path = '/api';
+    Map<String, dynamic> queryParameters = {
+      "module": "stats",
+      "action": "ethprice",
+      "apiKey": etherscanApiKey
+    };
+
+    final headers = {
+      'accept': 'application/json',
+      'content-type': 'application/json',
+    };
+    log(Uri.https(authority, path, queryParameters).toString());
+    try {
+      final response = await http.get(
+        Uri.https(authority, path, queryParameters),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200) {
+        // log(response.body);
+        var result = EthPriceModel.fromRawJson(response.body).result;
+        return left(result);
+      }
+
+      throw AppEType.somethingElse;
+    } catch (e) {
+      log(e.toString());
+      return right(AppException(AppEType.somethingElse));
+    }
+  }
+
   static Future<
           Either<List<TransactionModelResult>, TransactionHistoryException>>
       getTransactions(
@@ -93,7 +182,7 @@ class ApiService {
       "apiKey": etherscanApiKey
     };
     switch (network) {
-      case Network.etheriumMainnet:
+      case Network.ethereumMainnet:
         authority = 'api.etherscan.io';
       case Network.sepoliaTestnet:
         authority = 'api-sepolia.etherscan.io';
@@ -147,7 +236,7 @@ class ApiService {
     String path = "/api/v2/0x$address/erc20";
     Map<String, String> queryParameters = {};
     switch (network) {
-      case Network.etheriumMainnet:
+      case Network.ethereumMainnet:
         queryParameters["chain"] = "eth";
       case Network.sepoliaTestnet:
         queryParameters["chain"] = "sepolia";
@@ -202,9 +291,9 @@ class ApiService {
       getTransactionStream(String address, Network network) {
     WebSocketChannel channel;
     switch (network) {
-      case Network.etheriumMainnet:
+      case Network.ethereumMainnet:
         channel = WebSocketChannel.connect(
-          Uri.parse("$_etheriumAlchemyWss$etheriumApiKey"),
+          Uri.parse("$_ethereumAlchemyWss$ethereumApiKey"),
         );
       case Network.sepoliaTestnet:
         channel = WebSocketChannel.connect(

@@ -4,7 +4,7 @@ import 'package:batua/exceptions/transaction_history_exception.dart';
 import 'package:batua/models/transaction.dart';
 import 'package:batua/models/transaction_model.dart';
 import 'package:batua/services/api_service.dart';
-import 'package:batua/utils.dart';
+import 'package:batua/utils/utils.dart';
 import 'package:fpdart/fpdart.dart';
 
 class TransactionHistoryService {

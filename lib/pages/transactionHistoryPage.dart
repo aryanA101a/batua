@@ -5,20 +5,20 @@ import 'package:batua/exceptions/transaction_history_exception.dart';
 import 'package:batua/models/transaction.dart';
 import 'package:batua/services/transaction_history_service.dart';
 import 'package:batua/ui_helper/homePageUiHelper.dart';
-import 'package:batua/ui_helper/transactionPageUiHelper.dart';
-import 'package:batua/utils.dart';
+import 'package:batua/ui_helper/transaction_history_page_ui_helper.dart';
+import 'package:batua/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-class TransactionhistoryPage extends StatelessWidget {
+class TransactionHistoryPage extends StatelessWidget {
   static const route = "/transactionHistory";
-  const TransactionhistoryPage({super.key});
+  const TransactionHistoryPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    var isLoading = context.select<TransactionPageUiHelper, bool>(
+    var isLoading = context.select<TransactionHistoryPageUiHelper, bool>(
       (value) => value.isLoading,
     );
     return Scaffold(
@@ -47,7 +47,8 @@ class TransactionhistoryPage extends StatelessWidget {
                         child: CircularProgressIndicator(),
                       )
                     : TransactionListWidget(
-                        transactions: context.select<TransactionPageUiHelper,
+                        transactions: context.select<
+                                TransactionHistoryPageUiHelper,
                                 List<Transaction>?>(
                             (value) => value.allTransactions),
                       )),
@@ -64,9 +65,8 @@ class TransactionListWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     log("transactionListWidget");
-    var exception =
-        context.select<TransactionPageUiHelper, TransactionHistoryException?>(
-            (value) => value.exception);
+    var exception = context.select<TransactionHistoryPageUiHelper,
+        TransactionHistoryException?>((value) => value.exception);
     if (exception != null &&
         exception.eType != TransactionHistoryEType.fininshed) {
       return Center(child: Text(exception.message));
@@ -77,7 +77,8 @@ class TransactionListWidget extends StatelessWidget {
       decoration: BoxDecoration(
           color: Colors.grey.shade200, borderRadius: BorderRadius.circular(12)),
       child: ListView.separated(
-        controller: context.read<TransactionPageUiHelper>().scrollController,
+        controller:
+            context.read<TransactionHistoryPageUiHelper>().scrollController,
         itemCount: transactions!.length + 1,
         itemBuilder: (context, index) {
           if (index < transactions!.length) {

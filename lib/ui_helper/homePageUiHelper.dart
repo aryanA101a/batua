@@ -1,15 +1,18 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:batua/di/locator.dart';
+import 'package:batua/main.dart';
 import 'package:batua/models/mined_transaction_model.dart';
 import 'package:batua/models/token.dart';
 import 'package:batua/models/tokens_model.dart';
 import 'package:batua/models/transaction.dart';
 import 'package:batua/models/transaction_model.dart';
+import 'package:batua/services/account_service.dart';
 import 'package:batua/services/api_service.dart';
-import 'package:batua/utils.dart';
-import 'package:batua/widgets.dart';
+import 'package:batua/utils/utils.dart';
+import 'package:batua/utils/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:web3dart/crypto.dart';
 
@@ -47,7 +50,7 @@ class HomePageUiHelper extends ChangeNotifier {
   late Stream<String?> _ethUsdtPriceStream;
   late Function _closeEthUsdtPriceStream;
 
-  Network _network = Network.etheriumMainnet;
+  Network _network = Network.ethereumMainnet;
   bool _changingNetwork = false;
   bool get changingNetwork => _changingNetwork;
   Network get network => _network;
@@ -79,31 +82,14 @@ class HomePageUiHelper extends ChangeNotifier {
   }
 
   _init() async {
-    await retrieveAddress();
-
-    notifyListeners();
-    _updateBalance();
-    _startTxnStream();
-    getTokens();
-
-    _startEthUsdtPriceStream();
-  }
-
-  Future<void> retrieveAddress() async {
-    AndroidOptions _getAndroidOptions() => const AndroidOptions(
-          encryptedSharedPreferences: true,
-        );
-    final storage = FlutterSecureStorage(aOptions: _getAndroidOptions());
-    String? privateKey = await storage.read(key: "privateKey");
-    _address = bytesToHex(
-      publicKeyToAddress(
-        privateKeyBytesToPublic(
-          hexToBytes(
-            privateKey!,
-          ),
-        ),
-      ),
-    );
+    AccountService.getAddress().then((value) {
+      _address = value;
+      notifyListeners();
+      _updateBalance();
+      _startTxnStream();
+      getTokens();
+      _startEthUsdtPriceStream();
+    });
   }
 
   void _startTxnStream() {
@@ -118,12 +104,27 @@ class HomePageUiHelper extends ChangeNotifier {
           _updateBalance();
           _updateTokens();
           double price = hexPriceToDouble(event.value.substring(2));
-          txnToast(
-              from: event.from,
-              to: event.to,
-              address: _address!,
-              network: network,
-              value: price);
+          log("gas:" +
+              int.parse(event.gas.substring(2), radix: 16).toString() +
+              " gasPrice:" +
+              int.parse(event.gasPrice.substring(2), radix: 16).toString());
+          HapticFeedback.heavyImpact();
+
+          rootScaffoldMessengerKey.currentState?.showSnackBar(
+            SnackBar(
+              content: TransactionNotificationSnackbarContent(
+                  from: event.from,
+                  to: event.to,
+                  address: _address!,
+                  network: network,
+                  value: price),
+              backgroundColor: Colors.transparent,
+              behavior: SnackBarBehavior.floating,
+              elevation: 0,
+              duration: Duration(seconds: 5),
+              dismissDirection: DismissDirection.vertical,
+            ),
+          );
         }
       });
     }

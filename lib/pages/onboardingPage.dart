@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:batua/services/account_service.dart';
+import 'package:batua/utils/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:web3dart/crypto.dart';
@@ -26,14 +28,32 @@ class OnboardingPage extends StatelessWidget {
             Spacer(),
             Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 6.0),
-                  child: CreateAccountBtn(),
+                Container(
+                  width: MediaQuery.sizeOf(context).width * .8,
+                  height: MediaQuery.sizeOf(context).height * .05,
+                  margin: const EdgeInsets.only(bottom: 6.0),
+                  child: IconLabelBtn(
+                      text: Text(
+                        "Create Account",
+                        style: TextStyle(
+                            color: Colors.grey.shade900, fontSize: 16),
+                      ),
+                      onPressed: () {
+                        AccountService.createAccount().then(
+                          (_) => Navigator.popAndPushNamed(
+                              context, HomePage.route),
+                        );
+                      },
+                      color: Colors.blue.shade100,
+                      icon: Icon(
+                        Icons.add_rounded,
+                        color: Colors.grey.shade900,
+                      )),
                 ),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.only(top: 6.0),
+            Container(
+              margin: const EdgeInsets.only(top: 6.0),
               child: ImportAccountBtn(),
             ),
           ],
@@ -43,47 +63,7 @@ class OnboardingPage extends StatelessWidget {
   }
 }
 
-class CreateAccountBtn extends StatelessWidget {
-  const CreateAccountBtn({
-    super.key,
-  });
 
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: MediaQuery.sizeOf(context).width * .8,
-      height: MediaQuery.sizeOf(context).height * .05,
-      child: ElevatedButton.icon(
-        style: ButtonStyle(
-          backgroundColor: MaterialStateProperty.all(Colors.blue.shade100),
-          elevation: MaterialStateProperty.all(0),
-          shape: MaterialStateProperty.all(
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-        ),
-        onPressed: () async {
-          var rng = math.Random.secure();
-          EthPrivateKey ethPrivateKey = EthPrivateKey.createRandom(rng);
-          Uint8List privateKey = ethPrivateKey.privateKey;
-          AndroidOptions _getAndroidOptions() => const AndroidOptions(
-                encryptedSharedPreferences: true,
-              );
-          final storage = FlutterSecureStorage(aOptions: _getAndroidOptions());
-          storage.write(key: "privateKey", value: bytesToHex(privateKey));
-              Navigator.popAndPushNamed(context, HomePage.route);
-
-        },
-        icon: Icon(
-          Icons.add_rounded,
-          color: Colors.grey.shade900,
-        ),
-        label: Text(
-          "Create Account",
-          style: TextStyle(color: Colors.grey.shade900, fontSize: 16),
-        ),
-      ),
-    );
-  }
-}
 
 class ImportAccountBtn extends StatelessWidget {
   const ImportAccountBtn({

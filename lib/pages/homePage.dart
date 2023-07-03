@@ -1,12 +1,15 @@
 import 'dart:developer';
 
+import 'package:batua/main.dart';
 import 'package:batua/models/token.dart';
 import 'package:batua/pages/tokenInfoPage.dart';
 import 'package:batua/pages/transactionHistoryPage.dart';
+import 'package:batua/pages/transactionPage.dart';
+import 'package:batua/services/account_service.dart';
 import 'package:batua/services/api_service.dart';
 import 'package:batua/ui_helper/homePageUiHelper.dart';
-import 'package:batua/utils.dart';
-import 'package:batua/widgets.dart';
+import 'package:batua/utils/utils.dart';
+import 'package:batua/utils/widgets.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,25 +27,31 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // var provider = Provider.of<HomePageUiHelper>(context);
-    return Scaffold(
-        body: SafeArea(
-      child: Column(
-        children: [
-          Container(
-            height: MediaQuery.sizeOf(context).height * (1 / 3),
-            child: const Column(
-              children: [
-                TopBar(),
-                Expanded(child: WalletInfo()),
-              ],
+    return WillPopScope(
+      onWillPop: () async {
+        SystemNavigator.pop();
+        return false;
+      },
+      child: Scaffold(
+          body: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              height: MediaQuery.sizeOf(context).height * (1 / 3),
+              child: const Column(
+                children: [
+                  TopBar(),
+                  Expanded(child: WalletInfo()),
+                ],
+              ),
             ),
-          ),
-          const Expanded(
-            child: TokensSectionWidget(),
-          )
-        ],
-      ),
-    ));
+            const Expanded(
+              child: TokensSectionWidget(),
+            )
+          ],
+        ),
+      )),
+    );
   }
 }
 
@@ -195,25 +204,19 @@ class WalletInfo extends StatelessWidget {
                   )
                 ]),
           ),
-          MaterialButton(
-            elevation: 0,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            onPressed: () {
-              txnToast(
-                from: "2810en2387128934",
-                to: "fuw7fwef7w7fqd",
-                address: "2810en2387128934",
-                network: Network.sepoliaTestnet,
-                value: .005,
-              );
-            },
-            child: Text(
-              "Send",
-              style: TextStyle(color: Colors.grey.shade200),
-            ),
-            color: Colors.blue.shade400,
-          )
+          IconLabelBtn(
+              text: Text(
+                "Send",
+                style: TextStyle(color: Colors.blue.shade800, fontSize: 16),
+              ),
+              onPressed: () {
+                Navigator.pushNamed(context, TransactionPage.route);
+              },
+              color: Colors.blue.shade200,
+              icon: Icon(
+                Icons.send_rounded,
+                color: Colors.blue.shade800,
+              )),
         ],
       ),
     );
@@ -251,19 +254,14 @@ class TopBar extends StatelessWidget {
             onPressed: () {
               Navigator.pushNamed(
                 context,
-                TransactionhistoryPage.route,
+                TransactionHistoryPage.route,
               );
             },
             icon: Icon(FontAwesomeIcons.fileInvoice,
                 color: Colors.blue.shade800)),
         IconButton(
             onPressed: () async {
-              AndroidOptions _getAndroidOptions() => const AndroidOptions(
-                    encryptedSharedPreferences: true,
-                  );
-              final storage =
-                  FlutterSecureStorage(aOptions: _getAndroidOptions());
-              storage.delete(key: "privateKey");
+              AccountService.deletePrivateKey();
               Navigator.popAndPushNamed(context, OnboardingPage.route);
             },
             icon: Icon(FontAwesomeIcons.arrowRightFromBracket,
@@ -286,9 +284,9 @@ class NetworksButton extends StatelessWidget {
       (value) => value.network,
     );
     switch (network) {
-      case Network.etheriumMainnet:
+      case Network.ethereumMainnet:
         iconColor = Colors.teal;
-        text = "Etherium";
+        text = "ethereum";
       case Network.sepoliaTestnet:
         iconColor = Colors.purple;
         text = "Sepolia";

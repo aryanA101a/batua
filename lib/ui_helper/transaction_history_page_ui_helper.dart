@@ -5,11 +5,11 @@ import 'package:batua/exceptions/transaction_history_exception.dart';
 import 'package:batua/models/transaction.dart';
 import 'package:batua/services/transaction_history_service.dart';
 import 'package:batua/ui_helper/homePageUiHelper.dart';
-import 'package:batua/utils.dart';
+import 'package:batua/utils/utils.dart';
 import 'package:flutter/material.dart';
 
-class TransactionPageUiHelper extends ChangeNotifier {
-  TransactionPageUiHelper() {
+class TransactionHistoryPageUiHelper extends ChangeNotifier {
+  TransactionHistoryPageUiHelper() {
     _isLoading = true;
     if (getIt<HomePageUiHelper>().address != null) {
       loadNext().then((value) {
@@ -51,7 +51,7 @@ class TransactionPageUiHelper extends ChangeNotifier {
     _pageLoading = true;
 
     var transactions = await _transactionHistoryService.getAllTransactions(
-      "9b130Ce90b9eC6A3D179e251434a7d10CF3aC21A",
+      getIt<HomePageUiHelper>().address!,
       getIt<HomePageUiHelper>().network,
     );
     transactions.fold((l) {

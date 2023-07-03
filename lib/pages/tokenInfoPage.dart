@@ -95,20 +95,25 @@ class TokenInfoPage extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Expanded(
-                                child: MetricBox(
-                                    metricName: "Market Capitalization",
-                                    value: snapshot
-                                            .data?.data.quote.usd.marketCap
-                                            .toStringAsFixed(4) ??
-                                        "not available"),
+                                child: Container(
+                                  margin: EdgeInsets.only(right: 6, bottom: 12),
+                                  child: MetricBox(
+                                      metricName: "Market Capitalization",
+                                      value: snapshot
+                                              .data?.data.quote.usd.marketCap
+                                              .toStringAsFixed(4) ??
+                                          "not available"),
+                                ),
                               ),
                               Expanded(
-                                  child: MetricBox(
-                                      metricName: "Circulating Supply",
-                                      value: snapshot
-                                              .data?.data.circulatingSupply
-                                              .toStringAsFixed(4) ??
-                                          "not available")),
+                                  child: Container(
+                                margin: EdgeInsets.only(left: 6, bottom: 12),
+                                child: MetricBox(
+                                    metricName: "Circulating Supply",
+                                    value: snapshot.data?.data.circulatingSupply
+                                            .toStringAsFixed(4) ??
+                                        "not available"),
+                              )),
                             ],
                           ),
                         ),
@@ -118,20 +123,26 @@ class TokenInfoPage extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Expanded(
-                                  child: MetricBox(
-                                metricName: "Rank",
-                                value: snapshot.data?.data.cmcRank.toString() ??
-                                    "not available",
+                                  child: Container(
+                                margin: EdgeInsets.only(right: 6, bottom: 12),
+                                child: MetricBox(
+                                  metricName: "Rank",
+                                  value:
+                                      snapshot.data?.data.cmcRank.toString() ??
+                                          "not available",
+                                ),
                               )),
                               Expanded(
-                                  child: MetricBox(
-                                      metricName: "Max Supply",
-                                      value: snapshot
-                                                  .data!.data.infiniteSupply &&
-                                              snapshot.data?.data.maxSupply ==
-                                                  null
-                                          ? "infinite"
-                                          : "not available")),
+                                  child: Container(
+                                margin: EdgeInsets.only(left: 6, bottom: 12),
+                                child: MetricBox(
+                                    metricName: "Max Supply",
+                                    value: snapshot.data!.data.infiniteSupply &&
+                                            snapshot.data?.data.maxSupply ==
+                                                null
+                                        ? "infinite"
+                                        : "not available"),
+                              )),
                             ],
                           ),
                         ),
@@ -167,7 +178,6 @@ class MetricBox extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         color: Colors.cyan.shade100,
       ),
-      margin: EdgeInsets.only(right: 6, bottom: 16),
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
