@@ -73,94 +73,116 @@ class TransactionPage extends StatelessWidget {
                   ),
                 ],
               ),
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      margin: EdgeInsets.only(right: 6),
-                      child: MetricBox(
-                          metricName: "Estimated Gas",
-                          value:
-                              context.select<TransactionPageUiHelper, String>(
-                                  (value) => value.estimatedGas)),
-                    ),
-                  ),
-                  Expanded(
-                    child: Container(
-                      margin: EdgeInsets.only(
-                        left: 6,
-                      ),
-                      child: MetricBox(
-                          metricName: "Gas Price",
-                          value:
-                              context.select<TransactionPageUiHelper, String>(
-                                  (value) => value.gasPrice)),
-                    ),
-                  ),
-                ],
-              ),
+              const GasMetrics(),
               NumberPad(
                   onNumberTap: context
                       .read<TransactionPageUiHelper>()
                       .onNumpadKeyPressed),
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      margin: EdgeInsets.only(right: 2),
-                      child: OutlinedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        style: ButtonStyle(
-                            padding:
-                                MaterialStateProperty.all(EdgeInsets.all(8)),
-                            backgroundColor:
-                                MaterialStateProperty.all(Colors.red.shade100),
-                            elevation: MaterialStateProperty.all(0),
-                            shape: MaterialStateProperty.all(
-                                RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(25)))),
-                        child: Text(
-                          "Reject",
-                          style: TextStyle(
-                              color: Colors.red,
-                              fontSize: 25,
-                              fontWeight: FontWeight.normal),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Container(
-                      margin: EdgeInsets.only(left: 2),
-                      child: MaterialButton(
-                        padding: EdgeInsets.all(8),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(25)),
-                        color: Colors.blue,
-                        onPressed: () {
-                          if (context
-                              .read<TransactionPageUiHelper>()
-                              .executeTransaction()) {
-                            Navigator.pop(context);
-                          }
-                        },
-                        child: Text(
-                          "Confirm",
-                          style: TextStyle(
-                              color: Colors.blue.shade100,
-                              fontSize: 25,
-                              fontWeight: FontWeight.normal),
-                        ),
-                      ),
-                    ),
-                  )
-                ],
-              )
+              const Actions()
             ]),
       )),
+    );
+  }
+}
+
+class Actions extends StatelessWidget {
+  const Actions({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            margin: EdgeInsets.only(right: 2),
+            child: OutlinedButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              style: ButtonStyle(
+                  padding:
+                      MaterialStateProperty.all(EdgeInsets.all(8)),
+                  backgroundColor:
+                      MaterialStateProperty.all(Colors.red.shade100),
+                  elevation: MaterialStateProperty.all(0),
+                  shape: MaterialStateProperty.all(
+                      RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25)))),
+              child: Text(
+                "Reject",
+                style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 25,
+                    fontWeight: FontWeight.normal),
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          child: Container(
+            margin: EdgeInsets.only(left: 2),
+            child: MaterialButton(
+              padding: EdgeInsets.all(8),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25)),
+              color: Colors.blue,
+              onPressed: () {
+                if (context
+                    .read<TransactionPageUiHelper>()
+                    .executeTransaction()) {
+                  Navigator.pop(context);
+                }
+              },
+              child: Text(
+                "Confirm",
+                style: TextStyle(
+                    color: Colors.blue.shade100,
+                    fontSize: 25,
+                    fontWeight: FontWeight.normal),
+              ),
+            ),
+          ),
+        )
+      ],
+    );
+  }
+}
+
+class GasMetrics extends StatelessWidget {
+  const GasMetrics({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            margin: EdgeInsets.only(right: 6),
+            child: MetricBox(
+                metricName: "Estimated Gas",
+                value:
+                    context.select<TransactionPageUiHelper, String>(
+                        (value) => value.estimatedGas)),
+          ),
+        ),
+        Expanded(
+          child: Container(
+            margin: EdgeInsets.only(
+              left: 6,
+            ),
+            child: MetricBox(
+                metricName: "Gas Price",
+                value:
+                    context.select<TransactionPageUiHelper, String>(
+                        (value) => value.gasPrice)),
+          ),
+        ),
+      ],
     );
   }
 }

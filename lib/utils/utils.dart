@@ -7,14 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
-Future<bool> isLogged() async {
-  AndroidOptions _getAndroidOptions() => const AndroidOptions(
-        encryptedSharedPreferences: true,
-      );
-  final storage = FlutterSecureStorage(aOptions: _getAndroidOptions());
 
-  return storage.containsKey(key: "privateKey");
-}
 
 double hexPriceToDouble(String hexPrice) {
   int intValue = int.parse(hexPrice, radix: 16);

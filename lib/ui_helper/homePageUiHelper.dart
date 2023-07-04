@@ -26,7 +26,9 @@ class HomePageUiHelper extends ChangeNotifier {
   @override
   void dispose() {
     log("dispose");
-    _closeTxnStream();
+   if (_closeTxnStream != null) {
+      _closeTxnStream!();
+    }
     // _closeEthUsdtPriceStream();
     getIt.resetLazySingleton<HomePageUiHelper>();
     super.dispose();
@@ -46,7 +48,7 @@ class HomePageUiHelper extends ChangeNotifier {
   String get tokensMessage => _tokensMessage;
 
   late Stream<MinedTransaction?> _txnStream;
-  late Function _closeTxnStream;
+  Function? _closeTxnStream;
   // late Stream<String?> _ethUsdtPriceStream;
   // late Function _closeEthUsdtPriceStream;
 
@@ -62,7 +64,7 @@ class HomePageUiHelper extends ChangeNotifier {
     if (_address != null) {
       ApiService.getBalance(_address!, network).then((value) {
         if (value != null) {
-          _balance = hexPriceToDouble(value.result.substring(2));
+          _balance = hexPriceToDouble(strip0x(value.result));
           if (_balance == 0) {
             _usdtBalance = 0;
           }
@@ -78,7 +80,9 @@ class HomePageUiHelper extends ChangeNotifier {
     _changingNetwork = true;
     _network = Network.values[(_network.index + 1) % Network.values.length];
     notifyListeners();
-    _closeTxnStream();
+    if (_closeTxnStream != null) {
+      _closeTxnStream!();
+    }
     _startTxnStream();
     Future.wait([
       _updateBalance(),
@@ -87,7 +91,7 @@ class HomePageUiHelper extends ChangeNotifier {
   }
 
   _init() async {
-    AccountService.getAddress().then((value) {
+    AccountService.retrieveCurrentAccount().then((value) {
       _address = value;
       notifyListeners();
       Future.wait([
@@ -126,7 +130,7 @@ class HomePageUiHelper extends ChangeNotifier {
         if (event != null) {
           _updateBalance();
           _updateTokens();
-          double price = hexPriceToDouble(event.value.substring(2));
+          double price = hexPriceToDouble(strip0x(event.value));
 
           HapticFeedback.heavyImpact();
 
@@ -188,8 +192,8 @@ class HomePageUiHelper extends ChangeNotifier {
       }, (r) {
         return;
       });
-       _loadingTokens = false;
-    notifyListeners();
+      _loadingTokens = false;
+      notifyListeners();
     }
   }
 

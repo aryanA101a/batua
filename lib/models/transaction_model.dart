@@ -5,6 +5,8 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:web3dart/crypto.dart';
+
 class TransactionModel {
   final String status;
   final String message;
@@ -97,8 +99,8 @@ class TransactionModelResult {
         nonce: json["nonce"],
         blockHash: json["blockHash"],
         transactionIndex: json["transactionIndex"],
-        from: json["from"].substring(2),
-        to: json["to"].substring(2),
+        from:strip0x( json["from"]),
+        to: strip0x(json["to"]),
         value: json["tokenDecimal"] == null
             ? BigInt.parse(json["value"]) / BigInt.from(pow(10, 18))
             : BigInt.parse(json["value"]) /

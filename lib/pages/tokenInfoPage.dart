@@ -194,7 +194,7 @@ class MetricBox extends StatelessWidget {
             height: MediaQuery.sizeOf(context).height * .04,
           ),
           Text(
-            value,
+            value.isEmpty?"fetching latest data...":value,
             style: TextStyle(
               color: Colors.grey.shade900,
               fontSize: 16,

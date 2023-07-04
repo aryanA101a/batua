@@ -1,4 +1,4 @@
-enum AppEType { somethingElse, empty }
+enum AppEType { somethingElse, empty, importAccount }
 
 class AppException {
   AppException(this.eType) : _message = _setMessage(eType);
@@ -13,6 +13,8 @@ class AppException {
         return "Empty";
       case AppEType.somethingElse:
         return "Something went wrong!";
+      case AppEType.importAccount:
+        return "Cannot import account!";
     }
   }
 }

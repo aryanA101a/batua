@@ -4,7 +4,9 @@ import 'package:batua/pages/onboardingPage.dart';
 import 'package:batua/pages/tokenInfoPage.dart';
 import 'package:batua/pages/transactionHistoryPage.dart';
 import 'package:batua/pages/transactionPage.dart';
+import 'package:batua/services/account_service.dart';
 import 'package:batua/ui_helper/homePageUiHelper.dart';
+import 'package:batua/ui_helper/onboarding_page_ui_helper.dart';
 import 'package:batua/ui_helper/transaction_history_page_ui_helper.dart';
 import 'package:batua/ui_helper/transaction_page_ui_helper.dart';
 import 'package:batua/utils/utils.dart';
@@ -25,7 +27,7 @@ void main() async {
   );
 
   WidgetsFlutterBinding.ensureInitialized();
-  bool loggedIn = await isLogged();
+  bool loggedIn = await AccountService.isLogged();
   runApp(MyApp(loggedIn: loggedIn));
 }
 
@@ -35,24 +37,31 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      scaffoldMessengerKey: rootScaffoldMessengerKey,
-      title: "Batua",
-      initialRoute: loggedIn ? HomePage.route : OnboardingPage.route,
-      routes: {
-        "/": (context) => const OnboardingPage(),
-        "/home": (context) => ChangeNotifierProvider(
-              create: (context) => getIt<HomePageUiHelper>(),
-              child: const HomePage(),
-            ),
-        "/tokenInfoPage": (context) => const TokenInfoPage(),
-        "/transactionHistory": (context) => ChangeNotifierProvider(
-            create: (context) => TransactionHistoryPageUiHelper(),
-            child: const TransactionHistoryPage()),
-        "/transactionPage": (context) => ChangeNotifierProvider(
-            create: (context) => TransactionPageUiHelper(),
-            child: const TransactionPage()),
-      },
-    );
+    return ChangeNotifierProvider(
+        create: (context) => OnboardingPageUiHelper(),
+        child: MaterialApp(
+          scaffoldMessengerKey: rootScaffoldMessengerKey,
+          title: "Batua",
+          home: loggedIn
+              ? ChangeNotifierProvider(
+                  create: (context) => getIt<HomePageUiHelper>(),
+                  child: const HomePage(),
+                )
+              : OnboardingPage(),
+          routes: {
+            "/onboardingPage": (context) => const OnboardingPage(),
+            "/homePage": (context) => ChangeNotifierProvider(
+                  create: (context) => getIt<HomePageUiHelper>(),
+                  child: const HomePage(),
+                ),
+            "/tokenInfoPage": (context) => const TokenInfoPage(),
+            "/transactionHistory": (context) => ChangeNotifierProvider(
+                create: (context) => TransactionHistoryPageUiHelper(),
+                child: const TransactionHistoryPage()),
+            "/transactionPage": (context) => ChangeNotifierProvider(
+                create: (context) => TransactionPageUiHelper(),
+                child: const TransactionPage()),
+          },
+        ));
   }
 }

@@ -45,20 +45,24 @@ class TransactionNotificationSnackbarContent extends StatelessWidget {
 }
 
 class IconLabelBtn extends StatelessWidget {
-  const IconLabelBtn(
-      {super.key,
-      required this.onPressed,
-      required this.color,
-      required this.icon,
-      required this.text});
+  const IconLabelBtn({
+    super.key,
+    required this.onPressed,
+    required this.color,
+    required this.icon,
+    required this.text,
+    this.padding,
+  });
   final Function() onPressed;
   final Color color;
-  final Icon icon;
+  final Widget icon;
   final Widget text;
+  final EdgeInsetsGeometry? padding;
   @override
   Widget build(BuildContext context) {
     return ElevatedButton.icon(
       style: ButtonStyle(
+        padding:padding==null?null:MaterialStateProperty.all(padding),
         backgroundColor: MaterialStateProperty.all(color),
         elevation: MaterialStateProperty.all(0),
         shape: MaterialStateProperty.all(

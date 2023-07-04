@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:batua/di/locator.dart';
 import 'package:batua/main.dart';
 import 'package:batua/models/token.dart';
 import 'package:batua/pages/tokenInfoPage.dart';
@@ -21,37 +22,31 @@ import 'package:shimmer/shimmer.dart';
 import 'onboardingPage.dart';
 
 class HomePage extends StatelessWidget {
-  static const route = "/home";
+  static const route = "/homePage";
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     // var provider = Provider.of<HomePageUiHelper>(context);
-    return WillPopScope(
-      onWillPop: () async {
-        SystemNavigator.pop();
-        return false;
-      },
-      child: Scaffold(
-          body: SafeArea(
-        child: Column(
-          children: [
-            Container(
-              height: MediaQuery.sizeOf(context).height * (1 / 3),
-              child: const Column(
-                children: [
-                  TopBar(),
-                  Expanded(child: WalletInfo()),
-                ],
-              ),
+    return Scaffold(
+        body: SafeArea(
+      child: Column(
+        children: [
+          Container(
+            height: MediaQuery.sizeOf(context).height * (1 / 3),
+            child: const Column(
+              children: [
+                TopBar(),
+                Expanded(child: WalletInfo()),
+              ],
             ),
-            const Expanded(
-              child: TokensSectionWidget(),
-            )
-          ],
-        ),
-      )),
-    );
+          ),
+          const Expanded(
+            child: TokensSectionWidget(),
+          )
+        ],
+      ),
+    ));
   }
 }
 
@@ -272,13 +267,64 @@ class TopBar extends StatelessWidget {
             },
             icon: Icon(FontAwesomeIcons.fileInvoice,
                 color: Colors.blue.shade800)),
-        IconButton(
-            onPressed: () async {
-              AccountService.deletePrivateKey();
-              Navigator.popAndPushNamed(context, OnboardingPage.route);
+        Padding(
+          padding: const EdgeInsets.only(right: 8, left: 2),
+          child: PopupMenuButton<String>(
+            elevation: 2,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            position: PopupMenuPosition.under,
+            child: Icon(
+              Icons.settings_rounded,
+              color: Colors.grey.shade900,
+            ),
+            onSelected: (String value) {
+              switch (value) {
+                case "CopyPrivateKey":
+                  AccountService.retrievePrivateKey(
+                          context.read<HomePageUiHelper>().address!)
+                      .then((value) {
+                    Clipboard.setData(ClipboardData(text: value ?? ""));
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Private key copied!',
+                        ),
+                      ),
+                    );
+                  });
+
+                case "Accounts":
+                  // AccountService.deletePrivateKey();
+                  Navigator.popAndPushNamed(context, OnboardingPage.route);
+              }
             },
-            icon: Icon(FontAwesomeIcons.arrowRightFromBracket,
-                color: Colors.grey.shade900)),
+            itemBuilder: (BuildContext context) {
+              return [
+                ("Copy Private Key", Icons.security_rounded),
+                ("Accounts", Icons.account_circle_rounded)
+              ]
+                  .map(((String, IconData) v) => PopupMenuItem<String>(
+                        value: v.$1.replaceAll(' ', ''),
+                        child: Row(
+                          children: [
+                            Container(
+                              margin: const EdgeInsets.all(8.0),
+                              child: Icon(v.$2),
+                            ),
+                            Text(
+                              v.$1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontWeight: FontWeight.w500),
+                            ),
+                          ],
+                        ),
+                      ))
+                  .toList();
+            },
+          ),
+        ),
       ],
     );
   }

@@ -77,7 +77,7 @@ class ApiService {
     try {
       web3.Web3Client ethClient = web3.Web3Client(url, http.Client());
 
-      var privateKey = await AccountService.retrievePrivateKey();
+      var privateKey = await AccountService.retrievePrivateKey(fromAddress);
       EthPrivateKey cred = EthPrivateKey.fromHex('0x${privateKey!}');
       // web3.EtherAmount.fromInt
       web3.Transaction txn = web3.Transaction(
@@ -88,6 +88,7 @@ class ApiService {
               web3.EtherAmount.inWei(BigInt.from(amount * math.pow(10, 18))));
       await ethClient.sendTransaction(cred, txn, chainId: chainId);
     } catch (e) {
+      log(e.toString());
       return AppException(AppEType.somethingElse);
     }
     return null;
@@ -231,7 +232,7 @@ class ApiService {
     }
   }
 
-  static Future<Either<List<TokenModel>,AppException>> getErc20Tokens(
+  static Future<Either<List<TokenModel>, AppException>> getErc20Tokens(
       String address, Network network) async {
     String path = "/api/v2/0x$address/erc20";
     Map<String, String> queryParameters = {};
@@ -259,15 +260,13 @@ class ApiService {
             .map<TokenModel>((e) => TokenModel.fromJson(e))
             .toList();
         // log(tokensList.toString());
-        
-        return left(tokensList);
 
+        return left(tokensList);
       }
       throw AppException(AppEType.somethingElse);
     } catch (e) {
-       return right(AppException(AppEType.somethingElse));
+      return right(AppException(AppEType.somethingElse));
     }
-   
   }
 
   static Future<TokenInfoModel?> getTokenInfo(String tokenSymbol) async {

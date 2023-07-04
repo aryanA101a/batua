@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:web3dart/crypto.dart';
+
 class MinedTransactionModel {
   final String jsonrpc;
   final String method;
@@ -128,7 +130,7 @@ class MinedTransaction {
       MinedTransaction(
         blockHash: json["blockHash"],
         blockNumber: json["blockNumber"],
-        from: json["from"].substring(2),
+        from: strip0x(json["from"]),
         gas: json["gas"],
         gasPrice: json["gasPrice"],
         maxFeePerGas: json["maxFeePerGas"],
@@ -136,7 +138,7 @@ class MinedTransaction {
         hash: json["hash"],
         input: json["input"],
         nonce: json["nonce"],
-        to: json["to"].substring(2),
+        to: strip0x(json["to"]),
         transactionIndex: json["transactionIndex"],
         value: json["value"],
         type: json["type"],
