@@ -69,7 +69,27 @@ class TransactionListWidget extends StatelessWidget {
         TransactionHistoryException?>((value) => value.exception);
     if (exception != null &&
         exception.eType != TransactionHistoryEType.fininshed) {
-      return Center(child: Text(exception.message));
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              "images/noTransactions.png",
+              scale: 2.5,
+            ),
+            Container(
+              margin: EdgeInsets.only(top: 16),
+              child: Text(
+                exception.message,
+                style: TextStyle(
+                    fontSize: 30,
+                    color: Color.fromARGB(255, 117, 0, 137),
+                    fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+      );
     }
     return Container(
       // margin: EdgeInsets.all(8),

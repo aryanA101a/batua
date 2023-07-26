@@ -79,10 +79,25 @@ class TokensSectionWidget extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             color: Colors.grey.shade200),
         child: tokens.isEmpty
-            ? const Center(
-                child: Text(
-                  "No Tokens",
-                  style: TextStyle(fontSize: 20, color: Colors.black),
+            ? Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset(
+                      "images/noTokens.png",
+                      scale: 2.5,
+                    ),
+                    Container(
+                      margin: EdgeInsets.only(top: 16),
+                      child: Text(
+                        "No Tokens",
+                        style: TextStyle(
+                            fontSize: 30,
+                            color: Colors.blue.shade800,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
                 ),
               )
             : ListView.separated(
