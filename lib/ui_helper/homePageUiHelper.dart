@@ -26,7 +26,7 @@ class HomePageUiHelper extends ChangeNotifier {
   @override
   void dispose() {
     log("dispose");
-   if (_closeTxnStream != null) {
+    if (_closeTxnStream != null) {
       _closeTxnStream!();
     }
     // _closeEthUsdtPriceStream();
@@ -92,6 +92,7 @@ class HomePageUiHelper extends ChangeNotifier {
 
   _init() async {
     AccountService.retrieveCurrentAccount().then((value) {
+      log(value.toString());
       _address = value;
       notifyListeners();
       Future.wait([
@@ -174,7 +175,6 @@ class HomePageUiHelper extends ChangeNotifier {
       notifyListeners();
 
       var tokenModelList = await ApiService.getErc20Tokens(_address!, network);
-      log("tokens.toString()");
       Map<String, Token> tokens = {};
       tokenModelList.fold((l) {
         l

@@ -44,19 +44,25 @@ class AccountService {
       String address = privateKeyToAddress(privateKey);
       String? accountsData = await storage.read(key: 'accounts');
       if (accountsData == null) {
-        await storage.write(
-            key: "accounts", value: json.encode({address: privateKey}));
-        return;
+        await Future.wait([
+          storage.write(
+              key: "accounts", value: json.encode({address: privateKey})),
+          storage.write(key: "currentAccount", value: address)
+        ]);
+      } else {
+        Map accounts = json.decode(accountsData);
+        accounts[address] = privateKey;
+        await Future.wait(
+          [
+            storage.write(key: "accounts", value: json.encode(accounts)),
+            storage.write(key: "currentAccount", value: address),
+          ],
+        );
       }
-      Map accounts = json.decode(accountsData);
-      accounts[address] = privateKey;
-      Future.wait(
-        [
-          storage.write(key: "accounts", value: json.encode(accounts)),
-          storage.write(key: "currentAccount", value: address),
-        ],
-      );
+
+      log("address stored");
     } catch (e) {
+      log(e.toString());
       rethrow;
     }
   }

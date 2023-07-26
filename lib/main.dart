@@ -28,12 +28,12 @@ void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
   bool loggedIn = await AccountService.isLogged();
-  runApp(MyApp(loggedIn: loggedIn));
+  runApp(Batua(loggedIn: loggedIn));
 }
 
-class MyApp extends StatelessWidget {
+class Batua extends StatelessWidget {
   final bool loggedIn;
-  const MyApp({super.key, required this.loggedIn});
+  const Batua({super.key, required this.loggedIn});
 
   @override
   Widget build(BuildContext context) {
